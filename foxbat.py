@@ -12,6 +12,11 @@ def request_page(url):
     html = BeautifulSoup(response)
     return html
 
+def get_domain(url):
+    domain = url.split('/')
+    print "The domain: ", domain[2]
+    return domain[2]
+
 # Foxbat class
 
 class Foxbat:
@@ -29,6 +34,7 @@ class Foxbat:
 
     def takeoff(self):
         self.current_url = self.entry
+        self.current_domain = get_domain(self.entry)
         self.html = request_page(self.entry)
         for link in self.html.find_all('a'):
             self.loaded_urls.append(link.get("href"))
@@ -41,6 +47,9 @@ class Foxbat:
         if (self.loaded_urls[1].startswith('#') == True):
             temp_str = self.current_url +""+ self.loaded_urls[1]
             self.loaded_urls[1] = temp_str
+        if ("http://" or "https://" not in self.loaded_urls[1]):
+            self.current_domain = get_domain(self.loaded_urls[1])
+            temp_str = 
         html = request_page(self.loaded_urls[1])
         for link in html.find_all('a'):
             self.loaded_urls.append(link.get("href"))
