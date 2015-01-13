@@ -7,7 +7,12 @@ from bs4 import BeautifulSoup
 # Define global variables and functions
 
 def request_page(url):
-    r = requests.get(url)
+    try:
+        r = requests.get(url)
+    except requests.exceptions.MissingSchema as e:
+        return
+    except requests.exceptions.InvalidSchema as e:
+        return
     response = r.text
     html = BeautifulSoup(response)
     return html
@@ -37,13 +42,13 @@ class Foxbat:
         self.current_domain = get_domain(self.entry)
         self.html = request_page(self.entry)
         for link in self.html.find_all('a'):
-            self.loaded_urls.append(link.get("href"))
+            if (link.get("href") not in self.loaded_urls):
+                self.loaded_urls.append(link.get("href"))
             print "Takeoff: ", link.get("href"), '\n'
 
     def get_page(self):
-        #print "Get page:", self.loaded_urls[1] # Lists start at 1? -.-
-        #for i in self.loaded_urls:
-        #    print i
+        if (self.loaded_urls[1] == None):
+            return
         if (self.loaded_urls[1].startswith('#') == True):
             temp_str = self.current_url +""+ self.loaded_urls[1]
             self.loaded_urls[1] = temp_str
@@ -52,22 +57,32 @@ class Foxbat:
             temp_str = self.current_domain +""+ self.loaded_urls[1]
         html = request_page(self.loaded_urls[1])
         self.crawled_urls.append(self.loaded_urls[1])
-        for link in html.find_all('a'):
-            self.loaded_urls.append(link.get("href"))
-            print "Get page: ", link.get("href"), '\n'
+        try:
+            for link in html.find_all('a'):
+                if (link.get("href") not in self.loaded_urls and link.get("href") not in self.crawled_urls):
+
+                    if (self.loaded_urls[1].startswith('#') == True):
+                        temp_str = self.current_url +""+ self.loaded_urls[1]
+                        self.loaded_urls[1] = temp_str
+                    if ("http://" or "https://" not in self.loaded_urls[1]):
+                        self.current_domain = get_domain(self.loaded_urls[1])
+                        temp_str = self.current_domain +""+ self.loaded_urls[1]
+                    
+                    self.loaded_urls.append(link.get("href"))
+                    print "Get page: ", link.get("href"), '\n'
+        except AttributeError:
+            self.loaded_urls = self.loaded_urls[1:]
+            return
 
         # Remove the first item of the loaded url list
-        i = 1
-        while (i < len(self.loaded_urls)):
-            self.loaded_urls_temp.append(self.loaded_urls[i])
-            i = i+1
-        self.loaded_urls = self.loaded_urls_temp
+        self.loaded_urls = self.loaded_urls[1:]
 
     def crawl(self):
         for item in self.html.find_all('p'):
             print item.get_text()
 
         # Debugging
+        print "The current domain is:", self.current_domain
         for item in self.loaded_urls:
             print "Loaded URLs: ", item
         for item in self.crawled_urls:
