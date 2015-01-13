@@ -49,8 +49,9 @@ class Foxbat:
             self.loaded_urls[1] = temp_str
         if ("http://" or "https://" not in self.loaded_urls[1]):
             self.current_domain = get_domain(self.loaded_urls[1])
-            temp_str = 
+            temp_str = self.current_domain +""+ self.loaded_urls[1]
         html = request_page(self.loaded_urls[1])
+        self.crawled_urls.append(self.loaded_urls[1])
         for link in html.find_all('a'):
             self.loaded_urls.append(link.get("href"))
             print "Get page: ", link.get("href"), '\n'
@@ -65,3 +66,9 @@ class Foxbat:
     def crawl(self):
         for item in self.html.find_all('p'):
             print item.get_text()
+
+        # Debugging
+        for item in self.loaded_urls:
+            print "Loaded URLs: ", item
+        for item in self.crawled_urls:
+            print "Crawled URLs: ", item
