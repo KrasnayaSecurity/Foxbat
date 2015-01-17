@@ -48,28 +48,36 @@ class Foxbat:
 
     def get_page(self):
         if (self.loaded_urls[1] == None):
+            self.loaded_urls = self.loaded_urls[1:]
             return
+        '''
         if (self.loaded_urls[1].startswith('#') == True):
             temp_str = self.current_url +""+ self.loaded_urls[1]
             self.loaded_urls[1] = temp_str
         if ("http://" or "https://" not in self.loaded_urls[1]):
             self.current_domain = get_domain(self.loaded_urls[1])
             temp_str = self.current_domain +""+ self.loaded_urls[1]
-        html = request_page(self.loaded_urls[1])
+        '''
+        self.html = request_page(self.loaded_urls[1])
         self.crawled_urls.append(self.loaded_urls[1])
         try:
-            for link in html.find_all('a'):
+            for link in self.html.find_all('a'):
                 if (link.get("href") not in self.loaded_urls and link.get("href") not in self.crawled_urls):
+                    href = link.get("href")
 
-                    if (self.loaded_urls[1].startswith('#') == True):
-                        temp_str = self.current_url +""+ self.loaded_urls[1]
-                        self.loaded_urls[1] = temp_str
-                    if ("http://" or "https://" not in self.loaded_urls[1]):
+                    if (href.startswith('#') == True):
+                        temp_str = self.current_url +""+ href
+                        href = temp_str
+                    if (href.startswith('/') == True):
                         self.current_domain = get_domain(self.loaded_urls[1])
-                        temp_str = self.current_domain +""+ self.loaded_urls[1]
-                    
-                    self.loaded_urls.append(link.get("href"))
-                    print "Get page: ", link.get("href"), '\n'
+                        temp_str = self.current_domain +""+ href
+                        href = temp_str
+
+                    #if (link.get("href").startswith('#')):
+                        #href = link.get("href")
+                    #    href = self.current_url +""+ link.get("href")
+                    self.loaded_urls.append(href)
+                    print "Get page: ", href, '\n'
         except AttributeError:
             self.loaded_urls = self.loaded_urls[1:]
             return
@@ -78,12 +86,15 @@ class Foxbat:
         self.loaded_urls = self.loaded_urls[1:]
 
     def crawl(self):
-        for item in self.html.find_all('p'):
-            print item.get_text()
+        try:
+            for item in self.html.find_all('p'):
+                print item.get_text()
+        except AttributeError:
+            return
 
-        # Debugging
+        # Debugging - Don't delete commented code below here!
         print "The current domain is:", self.current_domain
-        for item in self.loaded_urls:
-            print "Loaded URLs: ", item
+        #for item in self.loaded_urls:
+        #    print "Loaded URLs: ", item
         for item in self.crawled_urls:
             print "Crawled URLs: ", item
